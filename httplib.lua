@@ -3,11 +3,10 @@ local mime = {html='text/html', htm='text/html', css='text/css', js='text/javasc
               txt='text/plain', png='image/png', jpg='image/jpeg', jpeg='image/jpeg',
               bmp='image/bmp', ico='image/x-icon', svg='image/svg+xml'}
 
-local code_desc = {[200]="OK", [404]="Not Found",
-  [500]="Internal Server Error", [501]="Not Implemented"}
+local code_desc = {[200]="OK", [404]="Not Found", [500]="Internal Server Error",
+                   [501]="Not Implemented"}
 
 local function guessMime(filename)
-  
   local surfix = "html"
   for i = #filename, 1, -1 do
     if string.sub(filename, i, i) == '.' then
@@ -15,10 +14,7 @@ local function guessMime(filename)
       break
     end
   end
-  local mimetype = mime[surfix]
-  if mimetype == nil then
-    mimetype = mime['html']
-  end
+  local mimetype = mime[surfix] or mime['html']
   return mimetype
 end
 
