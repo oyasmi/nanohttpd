@@ -61,7 +61,7 @@ function main()
   print("Server Started on ", config.host, ":", config.port)
   
   while true do
-    local readable, writable, status = socket.select(recvt, sendt, 1)
+    local readable, writable, status = socket.select(recvt, sendt, 60)
     for i, conn in ipairs(readable) do
       local fd = conn:getfd()
       if(fd == svr_fd) then
