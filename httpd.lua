@@ -1,4 +1,4 @@
-#!/usr/local/bin/lua5.3
+#!/usr/bin/env lua
 local socket = require("socket")
 local newset = require("set")
 local httplib = require("httplib")
@@ -58,7 +58,7 @@ function main()
   svr_sock:settimeout(0.1)
   socks[svr_fd] = svr_sock
   recvt:insert(svr_sock)
-  print("Server Started on ", config.host, ":", config.port)
+  print(string.format("Server Started on %s:%d ...", config.host, config.port))
   
   while true do
     local readable, writable, status = socket.select(recvt, sendt, 60)
