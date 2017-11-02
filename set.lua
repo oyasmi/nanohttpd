@@ -23,4 +23,4 @@ local function newset()
   return setmetatable(set, mt)
 end
 
-return newset
+return {new = newset}

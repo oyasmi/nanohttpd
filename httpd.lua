@@ -1,11 +1,11 @@
 #!/usr/bin/env lua
 local socket = require("socket")
-local newset = require("set")
+local set = require("set")
 local httplib = require("httplib")
 local config = require("config")
 
-recvt = newset()
-sendt = newset()
+recvt = set.new()
+sendt = set.new()
 
 socks = {}
 handlers = {}
