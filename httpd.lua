@@ -9,13 +9,21 @@ sendt = newset()
 
 socks = {}
 handlers = {}
+strs_read = {}
 resps_to_send = {}
 
 function read_req(fd)
-  recvt:insert(socks[fd])
-  req = coroutine.yield()
-  recvt:remove(socks[fd])
-  return req
+  local pos_a, pos_b = strs_read[fd]:find("\r\n\r\n")
+  local req_str
+  if pos_a then
+    req_str = strs_read[fd]:sub(1, pos_b)
+    strs_read[fd] = strs_read[fd]:sub(pos_b + 1)
+  else
+    recvt:insert(socks[fd])
+    req_str = coroutine.yield()
+    recvt:remove(socks[fd])
+  end
+  return req_str
 end
 
 function send_resp(fd, resp_msg)
@@ -40,7 +48,8 @@ end
 
 function handle(fd)
   while true do
-    local req = read_req(fd)
+    local req_str = read_req(fd)
+    local req = httplib.parse_req(req_str)
     req["uri"] = config.root_path .. req["uri"]
     local resp = httplib.process_req(req)
     local resp_msg = httplib.gen_resp_string(resp)
@@ -55,7 +64,7 @@ function main()
   
   local svr_sock = assert(socket.bind(config.host, config.port))
   local svr_fd = svr_sock:getfd()
-  svr_sock:settimeout(0.1)
+  svr_sock:settimeout(0)
   socks[svr_fd] = svr_sock
   recvt:insert(svr_sock)
   print(string.format("Server Started on %s:%d ...", config.host, config.port))
@@ -71,15 +80,22 @@ function main()
           local new_fd = new_conn:getfd()
           socks[new_fd] = new_conn
           handlers[new_fd] = coroutine.create(handle)
+          strs_read[new_fd] = ""
+          new_conn:settimeout(0)
           coroutine.resume(handlers[new_fd], new_fd)
         end
       else
-        local req = httplib.read_req(conn)
-        if req then
-          print("get request: " .. req["method"] .. " " .. req["uri"])
-          coroutine.resume(handlers[fd], req)
-        else
+        local ret, error_str, read_str = conn:receive("*a")
+        if error_str == "closed" or read_str == nil or #read_str == 0 then
           close_sock(fd)
+        else
+          strs_read[fd] = strs_read[fd] .. read_str
+          local pos_a, pos_b = string.find(strs_read[fd], "\r\n\r\n")
+          if pos_a then
+            local req_str = strs_read[fd]:sub(1, pos_b)
+            strs_read[fd] = strs_read[fd]:sub(pos_b + 1)
+            coroutine.resume(handlers[fd], req_str)
+          end
         end
       end
     end

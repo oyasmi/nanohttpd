@@ -18,25 +18,25 @@ local function guessMime(filename)
   return mimetype
 end
 
-local function read_request(sock)
-  local line = sock:receive("*l")
-  if line == nil or #line == 0 then
+local function parse_request(request)
+  if request == nil or #request == 0 then
     return nil
   end
 
-  local req = {}
-  req["method"], req["uri"], req["http_ver"] = string.match(line, "(%a.*) (%g.*) (%g.*)")
-  req["method"] = string.upper(req["method"])
-
-  line = sock:receive("*l")
-  while line and #line > 0 do
-    local comma_idx = string.find(line, ":")
-    req[string.lower(string.sub(line, 1, comma_idx-1))] = string.sub(line, comma_idx+1)
-    line = sock:receive("*l")
+  lines = {}
+  for l in request:gmatch("[^\r\n]+") do
+    lines[#lines+1] = l
   end
 
-  if req["method"] == "POST" and req["content-length"] then
-    req["body"] = sock:receive(tonumber(req["content-length"]))
+  local req = {}
+  req["method"], req["uri"], req["http_ver"] = string.match(lines[1], "(%a.*) (%g.*) (%g.*)")
+  req["method"] = string.upper(req["method"])
+
+  i = 2
+  while i < #lines and #lines[i] > 0 do
+    local comma_idx = string.find(lines[i], ":")
+    req[string.lower(string.sub(lines[i], 1, comma_idx-1))] = string.sub(lines[i], comma_idx+1)
+    i = i + 1
   end
 
   return req
@@ -94,6 +94,6 @@ local function gen_response_string(resp)
 end
 
 return {guessMime = guessMime,
-        read_req = read_request,
+        parse_req = parse_request,
         process_req = process_request,
         gen_resp_string = gen_response_string}
