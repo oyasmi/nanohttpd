@@ -72,7 +72,7 @@ local function process_request(req)
     resp["content-type"] = mime["html"]
     resp["content-length"] = 0
   end
-  
+
   return resp
 end
 

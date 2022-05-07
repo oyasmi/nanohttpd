@@ -102,9 +102,13 @@ function main()
     for i, conn in ipairs(writable) do
       local fd = conn:getfd()
       local resp_msg = resps_to_send[fd]
-      local bytes_sent = conn:send(resp_msg)
+      local bytes_sent, err = conn:send(resp_msg)
       if bytes_sent == nil then -- error
-        close_sock(fd)
+        if err == "timeout" then
+        else
+          print(err)
+          close_sock(fd)
+        end
       elseif bytes_sent == #resp_msg then -- successfully
         coroutine.resume(handlers[fd])
       elseif bytes_sent < #resp_msg then -- partially send
