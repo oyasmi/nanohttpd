@@ -102,9 +102,10 @@ function main()
     for i, conn in ipairs(writable) do
       local fd = conn:getfd()
       local resp_msg = resps_to_send[fd]
-      local bytes_sent, err = conn:send(resp_msg)
+      local bytes_sent, err, last_index = conn:send(resp_msg)
       if bytes_sent == nil then -- error
         if err == "timeout" then
+          resps_to_send[fd] = string.sub(resp_msg, last_index+1)
         else
           print(err)
           close_sock(fd)

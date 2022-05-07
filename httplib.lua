@@ -1,5 +1,5 @@
 local root_path = ""
-local mime = {html='text/html', htm='text/html', css='text/css', js='text/javascript',
+local mime = {html='text/html; charset=UTF-8', htm='text/html', css='text/css', js='text/javascript',
               txt='text/plain', png='image/png', jpg='image/jpeg', jpeg='image/jpeg',
               bmp='image/bmp', ico='image/x-icon', svg='image/svg+xml'}
 
